@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
-import { GitHubRepoSearch, PullRequestResult } from "./GitHubRepoSearch.ts";
+import { GetAllGithubPulls } from "./GitHubRepoSearch.ts";
+import { PullRequestResult } from "./GitHubResources.ts";
 
 function App() {
   const [pulls, setPulls] = useState({
@@ -13,10 +14,14 @@ function App() {
   const [resource, setResource] = useState("pulls");
   const [pageSize, setPageSize] = useState("5");
   const [page, setPage] = useState("1");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function FetchData() {
-    const result = await GitHubRepoSearch(owner, repo, resource, pageSize, page);
+    setIsLoading(true);
+    setPulls({data: [], total: 0} as PullRequestResult);
+    const result = await GetAllGithubPulls(owner, repo, resource, pageSize);
     setPulls(result);
+    setIsLoading(false);
   }
 
   return (
@@ -83,7 +88,16 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {pulls.data.length === 0 && (
+          {isLoading && (
+            <tr>
+              <td colSpan={3}>
+                <div className="spinner-border" role="status">
+                  <span className="sr-only"></span>
+                </div>
+              </td>
+            </tr>
+          )}
+            {!isLoading && pulls.data.length === 0 && (
               <tr>
                 <td colSpan={3}>No data</td>
               </tr>
